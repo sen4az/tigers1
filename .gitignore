@@ -1,0 +1,12 @@
+# secrets — never commit these
+.env
+.env.*
+*.local
+
+# dependencies (re-installed from package.json)
+node_modules/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.log

@@ -1,6 +1,7 @@
 # secrets — never commit these
 .env
 .env.*
+!.env.example
 *.local
 
 # dependencies (re-installed from package.json)

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tigers One — My Dashboard</title>
+  <style>
+    /* ---- Brand palette: forest green + gold ---- */
+    :root {
+      --bg:        #0A2C22;
+      --panel:     #0F3A2D;
+      --panel-2:   #124535;
+      --line:      #1d5544;
+      --gold:      #C9A24B;
+      --gold-soft: #e6cd8f;
+      --text:      #EAF3EE;
+      --muted:     #8FB3A4;
+      --good:      #4FBF8B;
+      --bad:       #E08A7A;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      padding: 24px; max-width: 1100px; margin: 0 auto;
+    }
+    header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand .dot { width: 38px; height: 38px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--gold-soft), var(--gold));
+      display: grid; place-items: center; font-weight: 800; color: var(--bg); }
+    .brand h1 { font-size: 18px; font-weight: 700; letter-spacing: .3px; }
+    .brand small { color: var(--muted); font-weight: 500; }
+    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    select, input { background: var(--panel); color: var(--text); border: 1px solid var(--line);
+      border-radius: 10px; padding: 9px 12px; font-size: 14px; outline: none; }
+    label.rate { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    input.rate-input { width: 70px; text-align: right; color: var(--gold-soft); font-weight: 700; }
+    .demo-tag { display:inline-block; background: rgba(201,162,75,.15); color: var(--gold-soft);
+      border:1px solid var(--line); padding:4px 10px; border-radius:999px; font-size:12px; }
+
+    /* ---- Stat cards ---- */
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    @media (max-width: 760px){ .cards { grid-template-columns: repeat(2, 1fr); } body{padding:16px;} }
+    .card { background: linear-gradient(160deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+    .card .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+    .card .v { font-size: 25px; font-weight: 800; margin-top: 8px; }
+    .card .v.gold { color: var(--gold-soft); }
+    .card .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .delta { display:inline-block; font-size: 12px; font-weight:700; margin-top: 8px; padding: 2px 8px; border-radius: 999px; }
+    .delta.up   { color: var(--good); background: rgba(79,191,139,.14); }
+    .delta.down { color: var(--bad);  background: rgba(224,138,122,.14); }
+    .delta.flat { color: var(--muted); background: rgba(143,179,164,.12); }
+
+    /* ---- panels & layout ---- */
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+    .panel-title { font-size: 12px; color: var(--muted); margin: 0 0 14px; text-transform: uppercase; letter-spacing: .6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+    @media (max-width: 760px){ .grid-2 { grid-template-columns: 1fr; } }
+    .section-gap { margin: 18px 0; }
+
+    /* ---- trend bar chart ---- */
+    .chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding-top: 10px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+    .bar { width: 100%; max-width: 46px; border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, #1f6b53, #15503e); transition: height .3s; }
+    .bar.sel { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); }
+    .bar-lbl { font-size: 11px; color: var(--muted); }
+    .bar-val { font-size: 11px; color: var(--text); font-weight: 600; }
+
+    /* ---- horizontal split bars ---- */
+    .row-bar { margin-bottom: 12px; }
+    .row-bar .top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+    .row-bar .top .amt { color: var(--gold-soft); font-weight: 700; }
+    .track { height: 9px; background: var(--panel-2); border-radius: 999px; overflow: hidden; }
+    .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); }
+    .fill.alt { background: linear-gradient(90deg, #1f6b53, #4FBF8B); }
+
+    /* ---- website funnel ---- */
+    .funnel-row { margin-bottom: 15px; }
+    .funnel-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; margin-bottom: 6px; }
+    .funnel-top .amt { color: var(--gold-soft); font-weight: 700; font-size: 15px; }
+    .track.tall { height: 18px; }
+    .funnel-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
+    .funnel-src { font-size: 11px; color: var(--muted); opacity: .8; }
+
+    /* ---- tables ---- */
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 11px 8px; font-size: 14px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+    tr:last-child td { border-bottom: none; }
+    td.amount, th.amount, td.comm, th.comm { text-align: right; }
+    td.comm { color: var(--gold-soft); font-weight: 700; }
+    .note { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .note code { background: var(--panel); padding: 2px 6px; border-radius: 6px; color: var(--gold-soft); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="dot">T1</div>
+      <div><h1>My Dashboard</h1><small>Tigers One Exchange · commission tracker</small></div>
+    </div>
+    <div class="controls">
+      <span class="demo-tag">● sample data</span>
+      <select id="range">
+        <option value="this">This month</option>
+        <option value="last">Last month</option>
+        <option value="all" selected>All time</option>
+      </select>
+      <label class="rate">my rate
+        <input class="rate-input" id="rate" type="number" min="0" step="0.1" value="0.5" />%
+      </label>
+    </div>
+  </header>
+
+  <!-- Stat cards -->
+  <section class="cards">
+    <div class="card"><div class="k">Clients brought</div><div class="v" id="c-clients">—</div><div id="d-clients"></div><div class="sub" id="c-clients-sub"></div></div>
+    <div class="card"><div class="k">Completed exchanges</div><div class="v" id="c-completed">—</div><div id="d-completed"></div><div class="sub">billable</div></div>
+    <div class="card"><div class="k">Total volume</div><div class="v" id="c-volume">—</div><div id="d-volume"></div><div class="sub" id="c-avg"></div></div>
+    <div class="card"><div class="k">My commission</div><div class="v gold" id="c-commission">—</div><div id="d-commission"></div><div class="sub" id="c-commission-sub"></div></div>
+  </section>
+
+  <!-- Website funnel -->
+  <div class="panel section-gap">
+    <div class="panel-title">Website funnel — visit → contact → app → exchange</div>
+    <div id="funnel"></div>
+  </div>
+
+  <!-- Trend chart -->
+  <div class="panel section-gap">
+    <div class="panel-title">Volume trend — monthly (฿)</div>
+    <div class="chart" id="chart"></div>
+  </div>
+
+  <!-- Source split + New vs returning -->
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-title">Where clients came from (first touch)</div>
+      <div id="by-source"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">New vs returning clients</div>
+      <div id="new-returning"></div>
+    </div>
+  </div>
+
+  <!-- Commission by month -->
+  <div class="panel section-gap">
+    <div class="panel-title">Commission by month</div>
+    <table>
+      <thead><tr><th>Month</th><th>Exchanges</th><th class="amount">Volume (฿)</th><th class="comm">My commission (฿)</th></tr></thead>
+      <tbody id="by-month"></tbody>
+    </table>
+  </div>
+
+  <!-- Commission by client -->
+  <div class="panel section-gap">
+    <div class="panel-title">Commission by client <span class="funnel-src">· selected period</span></div>
+    <table>
+      <thead><tr><th>#</th><th>Client</th><th>Exchanges</th><th class="amount">Volume (฿)</th><th class="comm">My commission (฿)</th></tr></thead>
+      <tbody id="by-client"></tbody>
+    </table>
+  </div>
+
+  <!-- Completed exchanges -->
+  <div class="panel section-gap">
+    <div class="panel-title">Completed exchanges</div>
+    <table>
+      <thead><tr><th>Date</th><th>Client</th><th>Came via</th><th>Pair</th><th class="amount">Amount (฿)</th><th class="comm">My cut (฿)</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <p class="note">
+    Running on <strong>sample data</strong> so you can see the full picture. To make it real we
+    replace one function — <code>fetchOrders()</code> — so it reads from your Supabase database.
+    Every card, chart, and table already works off whatever it returns.
+  </p>
+
+  <script>
+    /* =====================================================================
+       Replace ONLY the body of fetchOrders() later — Supabase query goes here.
+       Each row = one COMPLETED exchange done through your funnel.
+       ===================================================================== */
+    async function fetchOrders() {
+      return [
+        // June 2026
+        { date:'2026-06-09', client:'Nattaya P.', source:'direct' , pair:'THB→USDT', amount:48000,  newClient:true  },
+        { date:'2026-06-08', client:'James W.',   source:'website', pair:'THB→USDT', amount:125000, newClient:true  },
+        { date:'2026-06-07', client:'Somchai R.', source:'direct' , pair:'USDT→THB', amount:32000,  newClient:true  },
+        { date:'2026-06-05', client:'Nattaya P.', source:'direct' , pair:'THB→USDT', amount:60000,  newClient:false },
+        { date:'2026-06-03', client:'Lena K.',    source:'website', pair:'THB→USDT', amount:210000, newClient:true  },
+        // May 2026
+        { date:'2026-05-28', client:'Arthit S.',  source:'direct' , pair:'USDT→THB', amount:90000,  newClient:true  },
+        { date:'2026-05-21', client:'James W.',   source:'website', pair:'THB→USDT', amount:75000,  newClient:false },
+        { date:'2026-05-18', client:'Priya M.',   source:'direct' , pair:'THB→USDT', amount:54000,  newClient:true  },
+        { date:'2026-05-10', client:'Arthit S.',  source:'direct' , pair:'USDT→THB', amount:43000,  newClient:false },
+        // April 2026
+        { date:'2026-04-26', client:'Lena K.',    source:'website', pair:'THB→USDT', amount:88000,  newClient:false },
+        { date:'2026-04-15', client:'Boon T.',    source:'direct' , pair:'THB→USDT', amount:39000,  newClient:true  },
+        { date:'2026-04-04', client:'Priya M.',   source:'direct' , pair:'USDT→THB', amount:51000,  newClient:false },
+        // March 2026
+        { date:'2026-03-22', client:'Daniel O.',  source:'website', pair:'THB→USDT', amount:67000,  newClient:true  },
+        { date:'2026-03-09', client:'Boon T.',    source:'direct' , pair:'THB→USDT', amount:28000,  newClient:false },
+        // February 2026
+        { date:'2026-02-19', client:'Daniel O.',  source:'website', pair:'USDT→THB', amount:45000,  newClient:false },
+        { date:'2026-02-06', client:'Mei L.',     source:'direct' , pair:'THB→USDT', amount:33000,  newClient:true  },
+        // January 2026
+        { date:'2026-01-24', client:'Mei L.',     source:'direct' , pair:'THB→USDT', amount:22000,  newClient:false },
+      ];
+    }
+
+    /* ---- helpers ---- */
+    const baht = n => '฿' + Math.round(n).toLocaleString('en-US');
+    const kbaht = n => '฿' + Math.round(n/1000) + 'k';
+    const monthKey = d => d.slice(0, 7);
+    const monthLabel = k => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(k.slice(5,7))-1];
+
+    // which month each range maps to (sample "today" = June 2026)
+    const SELECT = { this: { cur:'2026-06', prev:'2026-05' }, last: { cur:'2026-05', prev:'2026-04' } };
+
+    function stats(rows, rate) {
+      const volume = rows.reduce((s,o)=>s+o.amount, 0);
+      return {
+        volume, count: rows.length,
+        clients: new Set(rows.map(o=>o.client)).size,
+        commission: volume * (rate/100),
+        avg: rows.length ? volume/rows.length : 0,
+      };
+    }
+    function deltaBadge(cur, prev) {
+      if (prev === null || prev === undefined) return '';
+      if (prev === 0) return '<span class="delta up">▲ new</span>';
+      const pct = Math.round(((cur - prev) / prev) * 100);
+      if (pct === 0) return '<span class="delta flat">— flat</span>';
+      const cls = pct > 0 ? 'up' : 'down';
+      const arrow = pct > 0 ? '▲' : '▼';
+      return `<span class="delta ${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+    }
+
+    async function render() {
+      const all   = await fetchOrders();
+      const range = document.getElementById('range').value;
+      const rate  = parseFloat(document.getElementById('rate').value) || 0;
+
+      const rows     = range === 'all' ? all : all.filter(o => monthKey(o.date) === SELECT[range].cur);
+      const prevRows = range === 'all' ? null : all.filter(o => monthKey(o.date) === SELECT[range].prev);
+
+      const s  = stats(rows, rate);
+      const sp = prevRows ? stats(prevRows, rate) : null;
+
+      // ---- cards ----
+      document.getElementById('c-clients').textContent     = s.clients;
+      document.getElementById('c-clients-sub').textContent = rows.filter(o=>o.newClient).length + ' new this period';
+      document.getElementById('c-completed').textContent   = s.count;
+      document.getElementById('c-volume').textContent      = baht(s.volume);
+      document.getElementById('c-avg').textContent         = 'avg ' + baht(s.avg) + ' / deal';
+      document.getElementById('c-commission').textContent  = baht(s.commission);
+      document.getElementById('c-commission-sub').textContent = rate + '% of volume';
+      document.getElementById('d-clients').innerHTML    = deltaBadge(s.clients,    sp && sp.clients);
+      document.getElementById('d-completed').innerHTML  = deltaBadge(s.count,      sp && sp.count);
+      document.getElementById('d-volume').innerHTML     = deltaBadge(s.volume,     sp && sp.volume);
+      document.getElementById('d-commission').innerHTML = deltaBadge(s.commission, sp && sp.commission);
+
+      // ---- trend chart (always all months) ----
+      const months = [...new Set(all.map(o=>monthKey(o.date)))].sort();
+      const volBy = m => all.filter(o=>monthKey(o.date)===m).reduce((x,o)=>x+o.amount,0);
+      const max = Math.max(...months.map(volBy), 1);
+      const selMonth = range === 'all' ? null : SELECT[range].cur;
+      document.getElementById('chart').innerHTML = months.map(m => {
+        const v = volBy(m); const h = Math.max(4, (v/max)*120);
+        return `<div class="bar-col">
+          <div class="bar-val">${kbaht(v)}</div>
+          <div class="bar ${m===selMonth?'sel':''}" style="height:${h}px" title="${baht(v)}"></div>
+          <div class="bar-lbl">${monthLabel(m)}</div>
+        </div>`;
+      }).join('');
+
+      // ---- by source ----
+      const bySource = {};
+      rows.forEach(o => bySource[o.source] = (bySource[o.source]||0) + o.amount);
+      const srcMax = Math.max(...Object.values(bySource), 1);
+      document.getElementById('by-source').innerHTML = Object.entries(bySource)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([src,v],i) => `<div class="row-bar">
+          <div class="top"><span>${src}</span><span class="amt">${baht(v)}</span></div>
+          <div class="track"><div class="fill ${i%2?'alt':''}" style="width:${(v/srcMax)*100}%"></div></div>
+        </div>`).join('') || '<div class="sub">no data</div>';
+
+      // ---- new vs returning clients ----
+      const newC = new Set(rows.filter(o=>o.newClient).map(o=>o.client));
+      const allC = new Set(rows.map(o=>o.client));
+      const retC = allC.size - newC.size;
+      const nrMax = Math.max(newC.size, retC, 1);
+      document.getElementById('new-returning').innerHTML = `
+        <div class="row-bar"><div class="top"><span>New clients</span><span class="amt">${newC.size}</span></div>
+          <div class="track"><div class="fill" style="width:${(newC.size/nrMax)*100}%"></div></div></div>
+        <div class="row-bar"><div class="top"><span>Returning clients</span><span class="amt">${retC}</span></div>
+          <div class="track"><div class="fill alt" style="width:${(retC/nrMax)*100}%"></div></div></div>`;
+
+      // ---- commission by month (all months) ----
+      const byMonth = {};
+      all.forEach(o => { const k = monthKey(o.date); if (!byMonth[k]) byMonth[k] = {vol:0, n:0}; byMonth[k].vol += o.amount; byMonth[k].n++; });
+      document.getElementById('by-month').innerHTML = Object.entries(byMonth)
+        .sort((a,b) => a[0].localeCompare(b[0]))
+        .map(([k,d]) => `<tr><td>${monthLabel(k)} ${k.slice(0,4)}</td><td>${d.n}</td>
+          <td class="amount">${baht(d.vol)}</td><td class="comm">${baht(d.vol*rate/100)}</td></tr>`).join('');
+
+      // ---- commission by client (selected period, all clients) ----
+      const byClient = {};
+      rows.forEach(o => { if (!byClient[o.client]) byClient[o.client] = {vol:0, n:0}; byClient[o.client].vol += o.amount; byClient[o.client].n++; });
+      document.getElementById('by-client').innerHTML = Object.entries(byClient)
+        .sort((a,b) => b[1].vol - a[1].vol)
+        .map(([c,d],i) => `<tr><td>#${i+1}</td><td>${c}</td><td>${d.n}</td>
+          <td class="amount">${baht(d.vol)}</td><td class="comm">${baht(d.vol*rate/100)}</td></tr>`).join('');
+
+      // ---- completed table ----
+      document.getElementById('rows').innerHTML = rows.map(o => `<tr>
+        <td>${o.date}</td><td>${o.client}</td><td>${o.source}</td><td>${o.pair}</td>
+        <td class="amount">${baht(o.amount)}</td><td class="comm">${baht(o.amount*rate/100)}</td></tr>`).join('');
+    }
+
+    /* =====================================================================
+       WEBSITE FUNNEL — two data sources:
+        • visits + "contacted operator" clicks  → PostHog (website analytics).
+          Captures everyone who jumped to Telegram/WhatsApp, even if they never
+          exchange. Each website CTA fires posthog.capture('contact_click', ...).
+        • opened app + exchanged                → Supabase (the backend).
+       Numbers below are SAMPLE; wire each stage to its real source later.
+       ===================================================================== */
+    const FUNNEL = [
+      { label: 'Visited the website',                    n: 2400, src: 'PostHog' },
+      { label: 'Contacted operator (Telegram / WhatsApp)', n: 360, src: 'PostHog' },
+      { label: 'Opened the Mini App',                    n: 140,  src: 'Supabase' },
+      { label: 'Completed an exchange',                  n: 52,   src: 'Supabase' },
+    ];
+    function renderFunnel() {
+      const top = FUNNEL[0].n || 1;
+      document.getElementById('funnel').innerHTML = FUNNEL.map((s, i) => {
+        const pctTop  = Math.round(s.n / top * 100);
+        const pctPrev = i ? Math.round(s.n / (FUNNEL[i-1].n || 1) * 100) : 100;
+        const sub = i
+          ? `${pctPrev}% of previous step · ${pctTop}% of all visitors`
+          : 'top of funnel';
+        return `<div class="funnel-row">
+          <div class="funnel-top">
+            <span>${s.label} <span class="funnel-src">· ${s.src}</span></span>
+            <span class="amt">${s.n.toLocaleString('en-US')}</span>
+          </div>
+          <div class="track tall"><div class="fill ${i === FUNNEL.length-1 ? '' : 'alt'}" style="width:${Math.max(pctTop,2)}%"></div></div>
+          <div class="funnel-sub">${sub}</div>
+        </div>`;
+      }).join('');
+    }
+    renderFunnel();
+
+    const rateInput = document.getElementById('rate');
+    rateInput.value = localStorage.getItem('myRate') || '0.5';
+    rateInput.addEventListener('input', () => { localStorage.setItem('myRate', rateInput.value); render(); });
+    document.getElementById('range').addEventListener('change', render);
+    render();
+  </script>
+</body>
+</html>
